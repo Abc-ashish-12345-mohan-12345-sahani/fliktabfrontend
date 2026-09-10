@@ -17,7 +17,7 @@ export const ConnectivityProvider = ({ children }) => {
       return true;
     } catch (_) {
       try {
-        await axios.get('http://localhost:5000/api/health', { timeout: 2000 });
+        await axios.get('https://flicktap-backend.mohanashish708090.workers.dev/api/health', { timeout: 2000 });
         handleStatusChange(true);
         return true;
       } catch (err) {

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Automatically adapt to relative proxy / backend host
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://flicktap-backend.mohanashish708090.workers.dev/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://flicktap-backend.mohanashish708090.workers.dev/';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -44,8 +44,8 @@ export const resolveVideoUrl = (url) => {
   if (url.startsWith('http://192.168.1.9:5000/videos/')) {
     return url.replace('http://192.168.1.9:5000/videos/', '/videos/');
   }
-  if (url.startsWith('http://localhost:5000/videos/')) {
-    return url.replace('http://localhost:5000/videos/', '/videos/');
+  if (url.startsWith('https://flicktap-backend.mohanashish708090.workers.dev/videos/')) {
+    return url.replace('https://flicktap-backend.mohanashish708090.workers.dev/videos/', '/videos/');
   }
   return url;
 };

@@ -8,15 +8,15 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://flicktap-backend.mohanashish708090.workers.dev/api',
         changeOrigin: true,
       },
       '/videos': {
-        target: 'http://localhost:5000',
+        target: 'https://flicktap-backend.mohanashish708090.workers.dev/api',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:5000',
+        target: 'https://flicktap-backend.mohanashish708090.workers.dev/api',
         changeOrigin: true,
       },
     },

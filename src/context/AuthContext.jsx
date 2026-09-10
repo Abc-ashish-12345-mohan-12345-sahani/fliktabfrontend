@@ -32,8 +32,15 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  const login = async (email, password) => {
-    const res = await authApi.login({ email, password });
+  const login = async (emailOrPhone, password) => {
+    const cleanId = (emailOrPhone || '').trim();
+    const res = await authApi.login({
+      email: cleanId,
+      phoneNumber: cleanId,
+      username: cleanId,
+      identifier: cleanId,
+      password,
+    });
     const { token: newToken, user: newUser } = res.data;
     setToken(newToken);
     setUser(newUser);

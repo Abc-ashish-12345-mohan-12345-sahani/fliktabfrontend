@@ -1,8 +1,24 @@
 import axios from 'axios';
 
-// Automatically adapt to relative proxy / backend host
-const rawBase = (import.meta.env.VITE_API_BASE_URL || 'https://flicktap-backend.mohanashish708090.workers.dev/api').trim().replace(/\/+$/, '');
-const API_BASE_URL = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
+// Robust API base URL resolution
+const getEffectiveBaseUrl = () => {
+  const envBase = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  const isBrowser = typeof window !== 'undefined';
+  const isLocalHost = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  // If running in production on Vercel or any non-localhost domain, prevent any localhost fallback
+  if (!isLocalHost) {
+    if (!envBase || envBase.includes('localhost') || envBase.includes('127.0.0.1')) {
+      return 'https://flicktap-backend.mohanashish708090.workers.dev/api';
+    }
+  }
+
+  const base = envBase || 'https://flicktap-backend.mohanashish708090.workers.dev/api';
+  const clean = base.replace(/\/+$/, '');
+  return clean.endsWith('/api') ? clean : `${clean}/api`;
+};
+
+const API_BASE_URL = getEffectiveBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,

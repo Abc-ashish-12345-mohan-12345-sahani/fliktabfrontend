@@ -1324,8 +1324,8 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
                 </div>
               </div>
               <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <p><strong>API Endpoint:</strong> http://localhost:5000/api</p>
-                <p><strong>CORS:</strong> Enabled for Local + LAN IP</p>
+                <p><strong>API Endpoint:</strong> https://flicktap-backend.mohanashish708090.workers.dev/api</p>
+                <p><strong>CORS:</strong> Cloudflare Edge + Localhost</p>
                 <p><strong>Admin Session:</strong> Active ({currentUser?.email})</p>
               </div>
             </div>

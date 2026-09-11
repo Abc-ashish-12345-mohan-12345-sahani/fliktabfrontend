@@ -2,18 +2,18 @@ import axios from 'axios';
 
 // Robust API base URL resolution
 const getEffectiveBaseUrl = () => {
-  const envBase = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  const envBase = (import.meta.env.VITE_API_BASE_URL || 'https://flicktap-backend.mohanashish708090.workers.dev/').trim();
   const isBrowser = typeof window !== 'undefined';
   const isLocalHost = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
   // If running in production on Vercel or any non-localhost domain, prevent any localhost fallback
   if (!isLocalHost) {
     if (!envBase || envBase.includes('localhost') || envBase.includes('127.0.0.1')) {
-      return 'https://flicktap-backend.mohanashish708090.workers.dev/api';
+      return 'https://flicktap-backend.mohanashish708090.workers.dev/';
     }
   }
 
-  const base = envBase || 'https://flicktap-backend.mohanashish708090.workers.dev/api';
+  const base = envBase || 'https://flicktap-backend.mohanashish708090.workers.dev/';
   const clean = base.replace(/\/+$/, '');
   return clean.endsWith('/api') ? clean : `${clean}/api`;
 };

@@ -295,7 +295,7 @@ export default function LoginPage({ onNavigateToSignup, onLoginSuccess }) {
               ) : (
                 <>
                   <LogIn className="w-4 h-4" />
-                  <span>Sign In to FlickTap</span>
+                  <span>Sign in to aashish</span>
                 </>
               )}
             </button>

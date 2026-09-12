@@ -42,7 +42,7 @@ import { copyToClipboard as clipboardCopy } from '../utils/clipboard';
 import { maskPhoneNumber, maskEmail } from '../utils/sanitize';
 
 export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) {
-  const { user: currentUser, isAdmin, login } = useAuth();
+  const { user: currentUser, isAdmin } = useAuth();
   
   // Tab State: 'users' | 'reviews' | 'stats'
   const [adminTab, setAdminTab] = useState(initialTab || 'users');
@@ -62,7 +62,6 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [showAllPasswords, setShowAllPasswords] = useState(false);
   const [maskSensitiveData, setMaskSensitiveData] = useState(false);
-  const [isLoggingInAsAdmin, setIsLoggingInAsAdmin] = useState(false);
 
   // Delete User Modal State
   const [userToDelete, setUserToDelete] = useState(null);
@@ -220,19 +219,6 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
     }
   };
 
-  const handleQuickAdminLogin = async () => {
-    setIsLoggingInAsAdmin(true);
-    setError('');
-    try {
-      await login('mohanashish708090@gmail.com', '123456');
-      await fetchUsersAndStats();
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to authenticate as Admin');
-    } finally {
-      setIsLoggingInAsAdmin(false);
-    }
-  };
-
   const handleCopyUsername = async (username, userId) => {
     const success = await clipboardCopy(username);
     if (success) {
@@ -287,7 +273,7 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
 
   // ✅ Fixed: Strictly matches only the specific clicked user's ID
   const handleToggleUserStatus = async (userObj) => {
-    if (userObj.role === 'admin') {
+    if (userObj.role === 'admin' || userObj.role === 'super_admin') {
       setError('Administrator accounts cannot be disabled.');
       return;
     }
@@ -397,8 +383,8 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
 
-    if (userToDelete.role === 'admin') {
-      setError('Admin accounts cannot be deleted.');
+    if (userToDelete.role === 'admin' || userToDelete.role === 'super_admin') {
+      setError('Admin and Super Admin accounts cannot be deleted.');
       setUserToDelete(null);
       return;
     }
@@ -450,8 +436,8 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
   }
 
   // Compute all metrics and counts safely
-  const totalAdmins = users.filter((u) => u.role === 'admin').length;
-  const totalRegularUsers = users.filter((u) => u.role !== 'admin').length;
+  const totalAdmins = users.filter((u) => u.role === 'admin' || u.role === 'super_admin').length;
+  const totalRegularUsers = users.filter((u) => u.role !== 'admin' && u.role !== 'super_admin').length;
   const totalActiveUsers = users.filter((u) => u.status !== 'disabled' && !u.isDisabled).length;
   const totalDisabledUsers = users.filter((u) => u.status === 'disabled' || u.isDisabled).length;
 
@@ -465,8 +451,8 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
       (u.phoneNumber && u.phoneNumber.includes(searchQuery));
 
     let matchesRole = true;
-    if (roleFilter === 'admin') matchesRole = u.role === 'admin';
-    else if (roleFilter === 'user') matchesRole = u.role !== 'admin';
+    if (roleFilter === 'admin') matchesRole = u.role === 'admin' || u.role === 'super_admin';
+    else if (roleFilter === 'user') matchesRole = u.role !== 'admin' && u.role !== 'super_admin';
     else if (roleFilter === 'active') matchesRole = u.status !== 'disabled' && !u.isDisabled;
     else if (roleFilter === 'disabled') matchesRole = u.status === 'disabled' || u.isDisabled;
 
@@ -603,12 +589,12 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
             onClick={() => setAdminTab('stats')}
             className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               adminTab === 'stats'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                : 'bg-white dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'
+                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/30'
+                : 'bg-white dark:bg-slate-800/60 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/30'
             }`}
           >
             <Database className="w-4 h-4 text-cyan-500" />
-            <span>Storage & Database Stats</span>
+            <span>Database Structure (D1 SQL)</span>
           </button>
         </div>
       </div>
@@ -721,8 +707,8 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
                     </tr>
                   ) : (
                     filteredUsers.map((u) => {
-                      const isCurrent = (currentUser?.email === u.email) || (currentUser?._id === u._id);
-                      const isUserAdmin = u.role === 'admin';
+                      const isUserSuperAdmin = u.role === 'super_admin';
+                      const isUserAdmin = u.role === 'admin' || u.role === 'super_admin';
                       const userId = (u._id || u.id || u.email).toString();
                       const isPassVisible = !!visiblePasswords[userId];
                       const isAccountDisabled = u.status === 'disabled' || u.isDisabled;
@@ -888,7 +874,12 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
 
                           {/* Role Badge */}
                           <td className="py-3.5 px-4">
-                            {isUserAdmin ? (
+                            {isUserSuperAdmin ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-gradient-to-r from-amber-500/20 to-red-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 uppercase tracking-wider">
+                                <Shield className="w-3 h-3 text-amber-500" />
+                                Super Admin
+                              </span>
+                            ) : isUserAdmin ? (
                               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 uppercase tracking-wider">
                                 <Shield className="w-3 h-3" />
                                 Admin
@@ -1278,6 +1269,7 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
       {/* 🗄️ 4. STORAGE & DATABASE STATS TAB */}
       {adminTab === 'stats' && (
         <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Top Engine Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-md space-y-3">
               <div className="flex items-center gap-3">
@@ -1290,9 +1282,9 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
                 </div>
               </div>
               <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <p><strong>DB Engine:</strong> MongoDB Atlas / Local</p>
-                <p><strong>Port:</strong> 27017</p>
-                <p><strong>Auth Model:</strong> JWT + Scrypt/Bcrypt</p>
+                <p><strong>DB Engine:</strong> Cloudflare D1 (Serverless SQLite at Edge)</p>
+                <p><strong>Database Name:</strong> <code className="text-indigo-600 dark:text-indigo-400 font-mono">flicktap-db</code></p>
+                <p><strong>Auth Model:</strong> JWT + Scrypt/PBKDF2 Password Hashing</p>
               </div>
             </div>
 
@@ -1302,14 +1294,14 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Collections Tracked</h4>
-                  <p className="text-xs text-indigo-600 font-bold">5 Active Collections</p>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Tables & Collections</h4>
+                  <p className="text-xs text-indigo-600 font-bold">6 Active D1 SQL Tables</p>
                 </div>
               </div>
               <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <p><strong>Users:</strong> {users.length} documents</p>
-                <p><strong>Feedback:</strong> {feedbacks.length} documents</p>
-                <p><strong>Notifications:</strong> Real-time in-memory + DB</p>
+                <p><strong>users:</strong> {users.length} registered accounts</p>
+                <p><strong>feedbacks:</strong> {feedbacks.length} user reviews</p>
+                <p><strong>shows & reels:</strong> Live 4K streaming catalog</p>
               </div>
             </div>
 
@@ -1320,13 +1312,253 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white">Server Runtime</h4>
-                  <p className="text-xs text-amber-600 font-bold">Node.js Express v20</p>
+                  <p className="text-xs text-amber-600 font-bold">Cloudflare Workers Edge API</p>
                 </div>
               </div>
               <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <p><strong>API Endpoint:</strong> https://flicktap-backend.mohanashish708090.workers.dev/api</p>
-                <p><strong>CORS:</strong> Cloudflare Edge + Localhost</p>
-                <p><strong>Admin Session:</strong> Active ({currentUser?.email})</p>
+                <p><strong>API Endpoint:</strong> <code className="text-slate-700 dark:text-slate-300 font-mono text-[10px]">flicktap-backend.workers.dev</code></p>
+                <p><strong>CORS:</strong> Enabled for Web App & Flutter Clients</p>
+                <p><strong>Admin Session:</strong> Active (<code className="text-indigo-600 dark:text-indigo-400 font-mono">{currentUser?.email}</code>)</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Database Explorer Direct Action */}
+          <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-900 text-white border border-indigo-500/30 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Database className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-base font-black tracking-tight">Cloudflare D1 SQL Live Explorer</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 uppercase">
+                  Remote D1
+                </span>
+              </div>
+              <p className="text-xs text-slate-300">
+                Direct live JSON endpoint for table schema inspection, raw queries, and database status verification.
+              </p>
+            </div>
+            <a
+              href="https://flicktap-backend.mohanashish708090.workers.dev/api/db"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-cyan-500/30 cursor-pointer shrink-0"
+            >
+              <span>Launch Live DB Explorer</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+
+          {/* Detailed Database Schema Cards */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-indigo-500" />
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                  Cloudflare D1 Relational Schema Architecture (6 Tables)
+                </h3>
+              </div>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">SQLite 3 / Cloudflare D1 SQL</span>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Table 1: users */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                    <span className="font-mono font-bold text-xs text-indigo-600 dark:text-indigo-400">TABLE users</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                    {users.length} Rows
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px] font-mono">
+                    <thead>
+                      <tr className="text-left text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                        <th className="py-1">Column</th>
+                        <th className="py-1">Type</th>
+                        <th className="py-1">Constraint / Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                      <tr><td className="py-1 font-bold text-indigo-500">id</td><td>TEXT</td><td className="text-amber-500">PRIMARY KEY</td></tr>
+                      <tr><td className="py-1 font-bold text-indigo-500">name</td><td>TEXT</td><td>NOT NULL</td></tr>
+                      <tr><td className="py-1 font-bold text-indigo-500">email</td><td>TEXT</td><td className="text-cyan-500">UNIQUE NOT NULL</td></tr>
+                      <tr><td className="py-1 font-bold text-indigo-500">phoneNumber</td><td>TEXT</td><td className="text-cyan-500">UNIQUE</td></tr>
+                      <tr><td className="py-1 font-bold text-indigo-500">password</td><td>TEXT</td><td>PBKDF2 Hashed</td></tr>
+                      <tr><td className="py-1 font-bold text-indigo-500">role</td><td>TEXT</td><td>'super_admin' | 'admin' | 'user'</td></tr>
+                      <tr><td className="py-1 font-bold text-indigo-500">isBlocked</td><td>INTEGER</td><td>DEFAULT 0 (Active)</td></tr>
+                      <tr><td className="py-1 font-bold text-indigo-500">avatar</td><td>TEXT</td><td>Avatar URL string</td></tr>
+                      <tr><td className="py-1 font-bold text-indigo-500">purchasedShows</td><td>TEXT</td><td>JSON Array of Show IDs</td></tr>
+                      <tr><td className="py-1 font-bold text-indigo-500">createdAt / updatedAt</td><td>TEXT</td><td>ISO 8601 Timestamps</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Table 2: shows */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span className="font-mono font-bold text-xs text-emerald-600 dark:text-emerald-400">TABLE shows</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                    4K Media Catalog
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px] font-mono">
+                    <thead>
+                      <tr className="text-left text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                        <th className="py-1">Column</th>
+                        <th className="py-1">Type</th>
+                        <th className="py-1">Constraint / Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                      <tr><td className="py-1 font-bold text-emerald-500">id</td><td>TEXT</td><td className="text-amber-500">PRIMARY KEY</td></tr>
+                      <tr><td className="py-1 font-bold text-emerald-500">title</td><td>TEXT</td><td>NOT NULL</td></tr>
+                      <tr><td className="py-1 font-bold text-emerald-500">description</td><td>TEXT</td><td>Full synopsis</td></tr>
+                      <tr><td className="py-1 font-bold text-emerald-500">category</td><td>TEXT</td><td>'Trending', 'Action', etc.</td></tr>
+                      <tr><td className="py-1 font-bold text-emerald-500">isPaid</td><td>INTEGER</td><td>0 = Free, 1 = VIP Paid</td></tr>
+                      <tr><td className="py-1 font-bold text-emerald-500">price</td><td>REAL</td><td>Default ₹0 / ₹499</td></tr>
+                      <tr><td className="py-1 font-bold text-emerald-500">videoUrl</td><td>TEXT</td><td>HLS / MP4 Stream URL</td></tr>
+                      <tr><td className="py-1 font-bold text-emerald-500">thumbnailUrl</td><td>TEXT</td><td>HD Poster Image URL</td></tr>
+                      <tr><td className="py-1 font-bold text-emerald-500">views / likes</td><td>INTEGER</td><td>Engagement Counters</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Table 3: reels */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
+                    <span className="font-mono font-bold text-xs text-pink-600 dark:text-pink-400">TABLE reels</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 border border-pink-200 dark:border-pink-800">
+                    9 Live Vertical Clips
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px] font-mono">
+                    <thead>
+                      <tr className="text-left text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                        <th className="py-1">Column</th>
+                        <th className="py-1">Type</th>
+                        <th className="py-1">Constraint / Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                      <tr><td className="py-1 font-bold text-pink-500">id</td><td>TEXT</td><td className="text-amber-500">PRIMARY KEY</td></tr>
+                      <tr><td className="py-1 font-bold text-pink-500">title</td><td>TEXT</td><td>Short Title & Caption</td></tr>
+                      <tr><td className="py-1 font-bold text-pink-500">videoUrl</td><td>TEXT</td><td>Vertical 9:16 MP4 URL</td></tr>
+                      <tr><td className="py-1 font-bold text-pink-500">thumbnailUrl</td><td>TEXT</td><td>Instant Load Thumbnail</td></tr>
+                      <tr><td className="py-1 font-bold text-pink-500">likes / commentsCount</td><td>INTEGER</td><td>Real-time counter</td></tr>
+                      <tr><td className="py-1 font-bold text-pink-500">sharesCount</td><td>INTEGER</td><td>Share Tracker</td></tr>
+                      <tr><td className="py-1 font-bold text-pink-500">isLiked / isSaved</td><td>INTEGER</td><td>Default 0</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Table 4: feedbacks */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    <span className="font-mono font-bold text-xs text-amber-600 dark:text-amber-400">TABLE feedbacks</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                    {feedbacks.length} Reviews
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px] font-mono">
+                    <thead>
+                      <tr className="text-left text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                        <th className="py-1">Column</th>
+                        <th className="py-1">Type</th>
+                        <th className="py-1">Constraint / Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                      <tr><td className="py-1 font-bold text-amber-500">id</td><td>TEXT</td><td className="text-amber-500">PRIMARY KEY</td></tr>
+                      <tr><td className="py-1 font-bold text-amber-500">name</td><td>TEXT</td><td>Reviewer Name</td></tr>
+                      <tr><td className="py-1 font-bold text-amber-500">email</td><td>TEXT</td><td>User Contact Email</td></tr>
+                      <tr><td className="py-1 font-bold text-amber-500">rating</td><td>INTEGER</td><td>1 to 5 Stars</td></tr>
+                      <tr><td className="py-1 font-bold text-amber-500">category</td><td>TEXT</td><td>'Bug', 'UI', 'Review', etc.</td></tr>
+                      <tr><td className="py-1 font-bold text-amber-500">message</td><td>TEXT</td><td>Detailed feedback message</td></tr>
+                      <tr><td className="py-1 font-bold text-amber-500">deviceInfo</td><td>TEXT</td><td>Client device/browser string</td></tr>
+                      <tr><td className="py-1 font-bold text-amber-500">status</td><td>TEXT</td><td>'new' | 'reviewed' | 'resolved'</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Table 5: notifications */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
+                    <span className="font-mono font-bold text-xs text-cyan-600 dark:text-cyan-400">TABLE notifications</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-50 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-800">
+                    In-App Push
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px] font-mono">
+                    <thead>
+                      <tr className="text-left text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                        <th className="py-1">Column</th>
+                        <th className="py-1">Type</th>
+                        <th className="py-1">Constraint / Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                      <tr><td className="py-1 font-bold text-cyan-500">id</td><td>TEXT</td><td className="text-amber-500">PRIMARY KEY</td></tr>
+                      <tr><td className="py-1 font-bold text-cyan-500">userId</td><td>TEXT</td><td>Target User ID or 'all'</td></tr>
+                      <tr><td className="py-1 font-bold text-cyan-500">title</td><td>TEXT</td><td>Notification Headline</td></tr>
+                      <tr><td className="py-1 font-bold text-cyan-500">message</td><td>TEXT</td><td>Push Alert Body</td></tr>
+                      <tr><td className="py-1 font-bold text-cyan-500">type</td><td>TEXT</td><td>'admin' | 'purchase' | 'system'</td></tr>
+                      <tr><td className="py-1 font-bold text-cyan-500">isRead</td><td>INTEGER</td><td>DEFAULT 0</td></tr>
+                      <tr><td className="py-1 font-bold text-cyan-500">createdAt</td><td>TEXT</td><td>ISO Timestamp</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Table 6: token_blacklist */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                    <span className="font-mono font-bold text-xs text-purple-600 dark:text-purple-400">TABLE token_blacklist</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
+                    Security Revocation
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px] font-mono">
+                    <thead>
+                      <tr className="text-left text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                        <th className="py-1">Column</th>
+                        <th className="py-1">Type</th>
+                        <th className="py-1">Constraint / Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                      <tr><td className="py-1 font-bold text-purple-500">token</td><td>TEXT</td><td className="text-amber-500">PRIMARY KEY</td></tr>
+                      <tr><td className="py-1 font-bold text-purple-500">expiresAt</td><td>INTEGER</td><td>Expiry Epoch Timestamp</td></tr>
+                      <tr><td className="py-1 font-bold text-purple-500">createdAt</td><td>TEXT</td><td>Revoked At Timestamp</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>

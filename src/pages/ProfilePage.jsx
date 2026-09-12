@@ -34,7 +34,7 @@ const AVATAR_PRESETS = [
 ];
 
 export default function ProfilePage({ onExploreHome, onOpenPurchases }) {
-  const { user, isAuthenticated, updateProfile, deleteAccount, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, updateProfile, deleteAccount, logout } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
 
   const [purchasedCount, setPurchasedCount] = useState(0);
@@ -258,27 +258,39 @@ export default function ProfilePage({ onExploreHome, onOpenPurchases }) {
         </div>
       </div>
 
-      {/* 🚨 4. DANGER ZONE: PERMANENT ACCOUNT DELETION */}
-      <div className="rounded-3xl bg-rose-500/5 dark:bg-rose-950/20 border border-rose-500/20 dark:border-rose-500/30 p-6 md:p-8 space-y-4 shadow-sm">
-        <div className="flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
-          <AlertTriangle className="w-5 h-5" />
-          <h3 className="text-base font-bold">Danger Zone: Permanent Account Deletion</h3>
+      {/* 🚨 4. DANGER ZONE: PERMANENT ACCOUNT DELETION (HIDDEN FOR ADMINS) */}
+      {!isAdmin ? (
+        <div className="rounded-3xl bg-rose-500/5 dark:bg-rose-950/20 border border-rose-500/20 dark:border-rose-500/30 p-6 md:p-8 space-y-4 shadow-sm">
+          <div className="flex items-center gap-2.5 text-rose-600 dark:text-rose-400">
+            <AlertTriangle className="w-5 h-5" />
+            <h3 className="text-base font-bold">Danger Zone: Permanent Account Deletion</h3>
+          </div>
+          <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed max-w-2xl">
+            Permanently delete your FlickTap account and remove all personal data, unlocked library purchases, and saved history from our servers. This action is <strong>irreversible</strong> and will also deactivate your credentials for the Flutter Mobile App.
+          </p>
+          <button
+            onClick={() => {
+              setDeleteConfirmationInput('');
+              setDeleteError('');
+              setShowDeleteModal(true);
+            }}
+            className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-xs font-bold text-white shadow-lg shadow-rose-600/30 transition-all cursor-pointer flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Permanently Delete My Account</span>
+          </button>
         </div>
-        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed max-w-2xl">
-          Permanently delete your FlickTap account and remove all personal data, unlocked library purchases, and saved history from our MongoDB servers. This action is <strong>irreversible</strong> and will also deactivate your credentials for the Flutter Mobile App.
-        </p>
-        <button
-          onClick={() => {
-            setDeleteConfirmationInput('');
-            setDeleteError('');
-            setShowDeleteModal(true);
-          }}
-          className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-xs font-bold text-white shadow-lg shadow-rose-600/30 transition-all cursor-pointer flex items-center gap-2"
-        >
-          <Trash2 className="w-4 h-4" />
-          <span>Permanently Delete My Account</span>
-        </button>
-      </div>
+      ) : (
+        <div className="rounded-3xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/20 dark:border-amber-500/30 p-6 md:p-8 space-y-2 shadow-sm">
+          <div className="flex items-center gap-2.5 text-amber-600 dark:text-amber-400">
+            <Shield className="w-5 h-5" />
+            <h3 className="text-base font-bold">Administrator Account Protected</h3>
+          </div>
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            As a <strong>Super Administrator</strong>, this account is protected against direct deletion. You have full access to User Management, Database Structure, and Upload Studio.
+          </p>
+        </div>
+      )}
 
       {/* ✏️ EDIT PROFILE MODAL */}
       {isEditing && (

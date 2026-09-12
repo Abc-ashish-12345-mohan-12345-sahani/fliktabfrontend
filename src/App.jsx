@@ -105,10 +105,10 @@ export default function App() {
             />
           )}
 
-          {(activeTab === 'admin-users' || activeTab === 'admin-feedback') && (
+          {(activeTab === 'admin-users' || activeTab === 'admin-feedback' || activeTab === 'admin-db') && (
             isAdmin ? (
               <AdminUsersPage
-                initialTab={activeTab === 'admin-feedback' ? 'reviews' : 'users'}
+                initialTab={activeTab === 'admin-feedback' ? 'reviews' : activeTab === 'admin-db' ? 'stats' : 'users'}
                 onExploreHome={() => setActiveTab('home')}
               />
             ) : (

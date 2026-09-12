@@ -1,5 +1,5 @@
 import React from 'react';
-import { Film, Flame, Bookmark, UploadCloud, User, Sparkles, Shield, Star, MessageSquare } from 'lucide-react';
+import { Film, Flame, Bookmark, UploadCloud, User, Sparkles, Shield, Star, MessageSquare, Database } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
@@ -77,7 +77,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             </span>
           </div>
 
-          {/* In-App Users & DB Management Tab */}
+          {/* In-App Users & Passwords Tab */}
           <button
             onClick={() => setActiveTab('admin-users')}
             className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
@@ -91,7 +91,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
               <span>Users & Passwords</span>
             </div>
             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300">
-              DB
+              Users
             </span>
           </button>
 
@@ -110,6 +110,24 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             </div>
             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300">
               Ratings
+            </span>
+          </button>
+
+          {/* Database Structure & Schema Tab */}
+          <button
+            onClick={() => setActiveTab('admin-db')}
+            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              activeTab === 'admin-db'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-600/30'
+                : 'text-cyan-800 dark:text-cyan-200 hover:text-cyan-950 dark:hover:text-white hover:bg-cyan-500/10 border border-cyan-500/30'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Database className={`w-4 h-4 ${activeTab === 'admin-db' ? 'text-white' : 'text-cyan-500 dark:text-cyan-400'}`} />
+              <span>Database Structure</span>
+            </div>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-cyan-700 dark:text-cyan-300">
+              D1 SQL
             </span>
           </button>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Film, Flame, Bookmark, UploadCloud, User, Sun, Moon, LogIn, Menu, X, Search, Shield } from 'lucide-react';
+import { Play, Film, Flame, Bookmark, UploadCloud, User, Sun, Moon, LogIn, Menu, X, Search, Shield, Star, Database } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import AppLogo from './AppLogo';
@@ -154,7 +154,27 @@ export default function Navbar({ activeTab, setActiveTab, searchQuery, setSearch
                           className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-amber-600 dark:text-amber-300 hover:text-amber-700 dark:hover:text-white hover:bg-amber-50 dark:hover:bg-amber-500/10 text-left transition-colors cursor-pointer"
                         >
                           <Shield className="w-4 h-4 text-amber-500 dark:text-amber-400" />
-                          <span>Users & DB Console</span>
+                          <span>Users & Passwords</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveTab('admin-feedback');
+                            setShowProfileMenu(false);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-amber-600 dark:text-amber-300 hover:text-amber-700 dark:hover:text-white hover:bg-amber-50 dark:hover:bg-amber-500/10 text-left transition-colors cursor-pointer"
+                        >
+                          <Star className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+                          <span>Reviews & Feedback</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveTab('admin-db');
+                            setShowProfileMenu(false);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-cyan-600 dark:text-cyan-300 hover:text-cyan-700 dark:hover:text-white hover:bg-cyan-50 dark:hover:bg-cyan-500/10 text-left transition-colors cursor-pointer"
+                        >
+                          <Database className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
+                          <span>Database Structure (D1)</span>
                         </button>
                       </>
                     )}
@@ -250,20 +270,50 @@ export default function Navbar({ activeTab, setActiveTab, searchQuery, setSearch
             )}
 
             {isAdmin && (
-              <button
-                onClick={() => {
-                  setActiveTab('admin-users');
-                  setMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === 'admin-users'
-                    ? 'bg-amber-600/20 text-amber-600 dark:text-amber-300 border border-amber-500/30'
-                    : 'text-amber-600 dark:text-amber-300 hover:text-amber-700 dark:hover:text-white hover:bg-amber-50 dark:hover:bg-amber-500/10'
-                }`}
-              >
-                <Shield className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-                <span>Admin Console (Users & DB)</span>
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    setActiveTab('admin-users');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+                    activeTab === 'admin-users'
+                      ? 'bg-amber-600/20 text-amber-600 dark:text-amber-300 border border-amber-500/30'
+                      : 'text-amber-600 dark:text-amber-300 hover:text-amber-700 dark:hover:text-white hover:bg-amber-50 dark:hover:bg-amber-500/10'
+                  }`}
+                >
+                  <Shield className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+                  <span>Users & Passwords</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('admin-feedback');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+                    activeTab === 'admin-feedback'
+                      ? 'bg-amber-600/20 text-amber-600 dark:text-amber-300 border border-amber-500/30'
+                      : 'text-amber-600 dark:text-amber-300 hover:text-amber-700 dark:hover:text-white hover:bg-amber-50 dark:hover:bg-amber-500/10'
+                  }`}
+                >
+                  <Star className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+                  <span>Reviews & Feedback</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('admin-db');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+                    activeTab === 'admin-db'
+                      ? 'bg-cyan-600/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30'
+                      : 'text-cyan-600 dark:text-cyan-300 hover:text-cyan-700 dark:hover:text-white hover:bg-cyan-50 dark:hover:bg-cyan-500/10'
+                  }`}
+                >
+                  <Database className="w-5 h-5 text-cyan-500 dark:text-cyan-400" />
+                  <span>Database Structure (D1 SQL)</span>
+                </button>
+              </>
             )}
           </div>
         )}

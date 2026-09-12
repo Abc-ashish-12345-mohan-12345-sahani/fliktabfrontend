@@ -102,14 +102,25 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('flicktap_user');
   };
 
+  const isSuperAdmin = !!(
+    user?.role?.toLowerCase() === 'super_admin' ||
+    user?.email?.toLowerCase() === 'mohanashish708090@gmail.com' ||
+    user?.phoneNumber === '+91 9336267840' ||
+    user?.phoneNumber === '9336267840' ||
+    user?.username?.toLowerCase() === 'mohanashish'
+  );
+
+  const isAdmin = isSuperAdmin || user?.role?.toLowerCase() === 'admin';
+
   return (
     <AuthContext.Provider
       value={{
-        user,
+        user: isSuperAdmin && user?.role !== 'super_admin' ? { ...user, role: 'super_admin' } : user,
         token,
         loading,
         isAuthenticated: !!token && !!user,
-        isAdmin: user?.role?.toLowerCase() === 'admin',
+        isAdmin,
+        isSuperAdmin,
         login,
         signup,
         sendSignupOtp,

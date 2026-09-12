@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Eye, EyeOff, LogIn, AlertCircle, Shield, User, KeyRound, ArrowLeft, CheckCircle2, RefreshCw, X, Phone } from 'lucide-react';
+import { Lock, Eye, EyeOff, LogIn, AlertCircle, KeyRound, ArrowLeft, CheckCircle2, X, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api';
 import AppLogo from '../components/AppLogo';
 
 export default function LoginPage({ onNavigateToSignup, onLoginSuccess }) {
   const { login } = useAuth();
-  const [identifier, setIdentifier] = useState('+91 9876543210');
-  const [password, setPassword] = useState('123456');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,12 +60,6 @@ export default function LoginPage({ onNavigateToSignup, onLoginSuccess }) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const prefill = (demoId, demoPass) => {
-    setIdentifier(demoId);
-    setPassword(demoPass);
-    setError('');
   };
 
   const openForgotPassword = () => {
@@ -306,21 +300,6 @@ export default function LoginPage({ onNavigateToSignup, onLoginSuccess }) {
               )}
             </button>
           </form>
-
-          {/* Quick Prefill Buttons */}
-          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">
-              Administrator Access
-            </p>
-            <button
-              type="button"
-              onClick={() => prefill('+91 9876543210', '123456')}
-              className="w-full px-3 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 dark:bg-amber-500/15 dark:hover:bg-amber-500/25 border border-amber-500/30 text-xs font-bold text-amber-800 dark:text-amber-300 hover:text-amber-950 dark:hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
-            >
-              <Shield className="w-4 h-4 text-amber-500 shrink-0" />
-              <span>Sign In as Admin (+91 9876543210)</span>
-            </button>
-          </div>
 
           {/* Switch to Signup */}
           <div className="text-center pt-1">

@@ -715,6 +715,7 @@ export default function AdminUsersPage({ onExploreHome, initialTab = 'users' }) 
                       const actualPassword = (u.plainPassword && u.plainPassword !== '••••••••' && u.plainPassword.trim() !== '')
                         ? u.plainPassword
                         : '123456';
+                      const isCurrent = !!(currentUser && (currentUser.email === u.email || (currentUser.id && currentUser.id === u.id) || (currentUser._id && currentUser._id === u._id)));
 
                       return (
                         <tr
